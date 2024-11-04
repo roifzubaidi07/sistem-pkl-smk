@@ -1,4 +1,4 @@
-Sampel username & level user \n
+<p> Sampel username & level user \n
 00000 Admin \n
 111111 Guru Pembimbing \n
 22222 Guru Pembimbing \n
@@ -13,7 +13,7 @@ Sampel username & level user \n
 290307 Siswa \n
 070900 Guru Pembimbing \n
 
-All Password 12345
+All Password 12345 </p>
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
 

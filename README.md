@@ -1,19 +1,20 @@
-<p> Sampel username & level user \n
-00000 Admin \n
-111111 Guru Pembimbing \n
-22222 Guru Pembimbing \n
-33333 Humas \n
-55555 Siswa \n
-67698 Siswa \n
-41878 Siswa \n
-73146 Siswa \n
-62389 Siswa \n
-80584 Siswa \n
-101010 Kakomli \n
-290307 Siswa \n
-070900 Guru Pembimbing \n
+## Sampel username & level user
 
-All Password 12345 </p>
+-   00000 Admin
+-   111111 Guru Pembimbing
+-   22222 Guru Pembimbing
+-   33333 Humas
+-   55555 Siswa
+-   67698 Siswa
+-   41878 Siswa
+-   73146 Siswa
+-   62389 Siswa
+-   80584 Siswa
+-   101010 Kakomli
+-   290307 Siswa
+-   070900 Guru Pembimbing
+
+## All Password 12345
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
 

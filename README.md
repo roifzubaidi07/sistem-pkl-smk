@@ -1,84 +1,220 @@
-## Sampel username & level user
+# Sistem Informasi Praktik Kerja Lapangan (PKL) SMK
 
--   00000 Admin
--   111111 Guru Pembimbing
--   22222 Guru Pembimbing
--   33333 Humas
--   55555 Siswa
--   67698 Siswa
--   41878 Siswa
--   73146 Siswa
--   62389 Siswa
--   80584 Siswa
--   101010 Kakomli
--   290307 Siswa
--   070900 Guru Pembimbing
+Aplikasi web untuk mengelola seluruh siklus kegiatan **Praktik Kerja Lapangan (PKL)** di Sekolah Menengah Kejuruan (SMK) — mulai dari pendataan siswa, penempatan ke DUDI (Dunia Usaha / Dunia Industri), presensi harian, jurnal kegiatan, hingga pengumpulan laporan dan sertifikat.
 
-## All Password 12345
+Proyek ini dibangun sebagai sampel sistem untuk keperluan **skripsi**.
 
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+> Status: Sampel akademik. Data seeder berisi data dummy dan bukan data produksi.
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+---
 
-## About Laravel
+## Daftar Isi
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- [Fitur Utama](#fitur-utama)
+- [Role Pengguna & Hak Akses](#role-pengguna--hak-akses)
+- [Arsitektur & Teknologi](#arsitektur--teknologi)
+- [Struktur Direktori](#struktur-direktori)
+- [Model & Relasi Data](#model--relasi-data)
+- [Instalasi & Menjalankan Lokal](#instalasi--menjalankan-lokal)
+- [Akun Sampel](#akun-sampel)
+- [Deployment (Vercel)](#deployment-vercel)
+- [Lisensi](#lisensi)
 
--   [Simple, fast routing engine](https://laravel.com/docs/routing).
--   [Powerful dependency injection container](https://laravel.com/docs/container).
--   Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
--   Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
--   Database agnostic [schema migrations](https://laravel.com/docs/migrations).
--   [Robust background job processing](https://laravel.com/docs/queues).
--   [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Fitur Utama
 
-## Learning Laravel
+- **Autentikasi berbasis nomor induk** (NIS/NIP/NIK sekolah) dengan 5 level role.
+- **Manajemen pengguna** oleh admin (siswa, guru pembimbing, kakomli, humas).
+- **Manajemen DUDI** (perusahaan tempat PKL) termasuk kuota per-DUDI.
+- **Pengajuan DUDI mandiri oleh siswa** beserta alur verifikasi oleh Kakomli.
+- **Penempatan siswa ke DUDI** oleh Kakomli sesuai jurusan (dengan validasi kuota).
+- **Pembimbingan**: siswa dialokasikan ke guru pembimbing oleh Humas.
+- **Presensi harian** siswa + verifikasi oleh guru pembimbing.
+- **Jurnal kegiatan harian** siswa beserta dokumentasi foto + verifikasi pembimbing.
+- **Manajemen berkas PKL**: upload laporan siswa (PDF), berkas bimbingan, dan sertifikat.
+- **Role-based access control** via middleware `level` yang memfilter akses per-URL.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Role Pengguna & Hak Akses
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Level (`levels` table) digunakan oleh middleware `CekLevel` (`app/Http/Middleware/CekLevel.php`) untuk membatasi akses rute. Setiap pengguna memiliki `level_id` dengan nilai sebagai berikut:
 
-## Laravel Sponsors
+| `level_id` | Role | Dashboard URL | Ringkasan Hak Akses |
+|---|---|---|---|
+| 1 | **Admin** | `/dashboard/admin` | CRUD pengguna & CRUD data DUDI. |
+| 2 | **Humas** | `/dashboard/humas` | Lihat siswa, DUDI, dan pembimbing. Mengatur pembimbing tiap siswa. Kelola berkas umum. |
+| 3 | **Kakomli** (Kepala Kompetensi Keahlian) | `/dashboard/kakomli` | Penempatan siswa jurusannya ke DUDI + verifikasi/penolakan pengajuan DUDI dari siswa. |
+| 4 | **Guru Pembimbing** | `/dashboard/pembimbing` | Verifikasi presensi & jurnal siswa bimbingan. Upload berkas bimbingan & sertifikat siswa. |
+| 5 | **Siswa** | `/dashboard/siswa` | Isi presensi, jurnal harian (+ foto), ajukan DUDI, dan upload laporan PKL. |
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+## Arsitektur & Teknologi
 
-### Premium Partners
+| Komponen | Versi / Pilihan |
+|---|---|
+| Framework | **Laravel** `^9.2` |
+| Bahasa | PHP `^8.0.2` |
+| Auth | Laravel session + **Laravel Sanctum** `^2.14.1` |
+| View engine | Blade |
+| Asset bundler | Laravel Mix `^6.0` + **Vite** `^5.4` |
+| Styling | SCSS (`sass`, `sass-loader`) |
+| Database | MySQL (default, lihat `.env.example`) |
+| Testing | PHPUnit `^9.5`, Laravel Browser Kit Testing, Mockery, Faker |
+| Deployment | Vercel serverless PHP (`vercel-php@0.7.0`) |
 
--   **[Vehikl](https://vehikl.com/)**
--   **[Tighten Co.](https://tighten.co)**
--   **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
--   **[64 Robots](https://64robots.com)**
--   **[Cubet Techno Labs](https://cubettech.com)**
--   **[Cyber-Duck](https://cyber-duck.co.uk)**
--   **[Many](https://www.many.co.uk)**
--   **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
--   **[DevSquad](https://devsquad.com)**
--   **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
--   **[OP.GG](https://op.gg)**
--   **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
--   **[Lendio](https://lendio.com)**
+## Struktur Direktori
 
-## Contributing
+```
+sistem-pkl-smk/
+├── api/                    # Entry point untuk serverless Vercel
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/    # 13 controller (Login, Register, User, Student, dst.)
+│   │   └── Middleware/     # CekLevel.php -> middleware role-based
+│   └── Models/             # User, Student, Mentor, Industry, Jurnal, Attendence, ...
+├── bootstrap/
+├── config/
+├── database/
+│   ├── migrations/         # 16 migration (users, students, industries, dst.)
+│   └── seeders/            # Seeder lengkap termasuk akun demo
+├── lang/
+├── public/                 # Document root Laravel
+├── resources/
+│   └── views/
+│       ├── admin/          # Tampilan role admin
+│       ├── humas/          # Tampilan role humas
+│       ├── kakomli/        # Tampilan role kakomli
+│       ├── pembimbing/     # Tampilan role guru pembimbing
+│       ├── siswa/          # Tampilan role siswa
+│       ├── template/       # Layout app.blade.php & sidebar.blade.php
+│       ├── login.blade.php
+│       └── register.blade.php
+├── routes/
+│   ├── web.php             # Rute utama, dikelompokkan per-level middleware
+│   └── api.php
+├── storage/
+├── tests/
+├── vercel.json             # Konfigurasi Vercel
+└── webpack.mix.js
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Model & Relasi Data
 
-## Code of Conduct
+Entitas utama dan relasinya (Eloquent):
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- **User** `hasMany` Mentor, Student, Chief, Pr; `belongsTo` Level.
+- **Level** `hasMany` User (1 Admin, 2 Humas, 3 Kakomli, 4 Pembimbing, 5 Siswa).
+- **Student** `belongsTo` User, Grade, Mentor, Industry; `hasMany` Attendence, Jurnal; `hasOne` IndustrySubmission.
+- **Mentor** `belongsTo` User, Major; `hasMany` Student.
+- **Chief** (Kakomli) `belongsTo` User, Major.
+- **Grade** (kelas) `belongsTo` Major.
+- **Major** (jurusan): Perhotelan (`ph`), Akuntansi (`akl`), Bisnis Daring & Pemasaran (`bdp`), Multimedia (`mm`), OTKP (`otkp`), RPL (`rpl`), TKJ (`tkj`), Tata Busana (`tb`).
+- **Industry** (DUDI): memiliki `kuota` siswa.
+- **IndustrySubmission**: pengajuan DUDI baru oleh siswa (diverifikasi Kakomli → lalu menjadi `Industry`).
+- **Attendence**: presensi harian siswa (tanggal, jam_datang, jam_pulang, status, `verifikasi`).
+- **Jurnal**: jurnal kegiatan siswa (waktu, kegiatan, dokumentasi gambar, `verifikasi`).
+- **File**: template & dokumen yang diunduh/diunggah pembimbing dan siswa.
 
-## Security Vulnerabilities
+## Instalasi & Menjalankan Lokal
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Prasyarat
 
-## License
+- PHP `>= 8.0.2` beserta ekstensi standar Laravel (`mbstring`, `openssl`, `pdo_mysql`, `xml`, `ctype`, dll.)
+- Composer
+- Node.js + npm
+- MySQL / MariaDB
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Langkah-langkah
 
-# Repository-Baru
+1. **Clone repositori**
+
+   ```bash
+   git clone <url-repo-ini> sistem-pkl-smk
+   cd sistem-pkl-smk
+   ```
+
+2. **Instal dependensi PHP & JS**
+
+   ```bash
+   composer install
+   npm install
+   ```
+
+3. **Siapkan file environment**
+
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+   Default database pada `.env.example`:
+
+   ```
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=db_pkl
+   DB_USERNAME=root
+   DB_PASSWORD=
+   ```
+
+   Buat database bernama `db_pkl` (atau sesuaikan pada `.env`).
+
+4. **Migrasi & seeding**
+
+   ```bash
+   php artisan migrate --seed
+   ```
+
+   Seeder (`database/seeders/DatabaseSeeder.php`) akan membuat level, jurusan, pengguna contoh, DUDI, presensi, jurnal, dan berkas dummy.
+
+5. **Symlink storage** (agar upload dapat diakses publik)
+
+   ```bash
+   php artisan storage:link
+   ```
+
+6. **Jalankan aplikasi**
+
+   ```bash
+   php artisan serve
+   # di terminal lain
+   npm run dev
+   ```
+
+   Aplikasi akan berjalan di `http://localhost:8000`.
+
+## Akun Sampel
+
+> Semua akun sampel menggunakan password **`12345`**.
+
+| No. Induk | Role |
+|-----------|------|
+| `00000`   | Admin |
+| `111111`  | Guru Pembimbing |
+| `22222`   | Guru Pembimbing |
+| `33333`   | Humas |
+| `55555`   | Siswa |
+| `67698`   | Siswa |
+| `41878`   | Siswa |
+| `73146`   | Siswa |
+| `62389`   | Siswa |
+| `80584`   | Siswa |
+| `101010`  | Kakomli |
+| `290307`  | Siswa |
+| `070900`  | Guru Pembimbing |
+
+Login dilakukan dengan kolom **no_induk** (bukan email) — lihat `app/Http/Controllers/LoginController.php`.
+
+## Deployment (Vercel)
+
+Proyek sudah dilengkapi `vercel.json` dan entry serverless di `api/index.php`:
+
+- Runtime: `vercel-php@0.7.0`
+- Semua request non-asset di-rewrite ke `api/index.php` yang meng-include `public/index.php`.
+- ENV yang di-override pada produksi (lihat `vercel.json`): `APP_ENV=production`, path cache ke `/tmp`, `SESSION_DRIVER=cookie`, `CACHE_DRIVER=array`, `LOG_CHANNEL=stderr`.
+
+Untuk deploy sendiri, buat project baru di Vercel, arahkan ke repo ini, dan tambahkan variabel `APP_KEY`, kredensial database, serta override `APP_URL` sesuai domain Vercel Anda.
+
+## Lisensi
+
+Framework Laravel yang mendasari proyek ini dirilis di bawah [MIT License](https://opensource.org/licenses/MIT). Kode aplikasi pada repositori ini merupakan **karya akademik** dan dapat dipakai untuk referensi pembelajaran.
